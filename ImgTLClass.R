@@ -249,7 +249,7 @@ ImgTLClass <- function() {
           dat$Date <- NA
           for (j in 1:NROW(meta))
             dat$Date[which(dat$Sample == meta$Sample[j])] <- meta$Date[j]
-          dat$Date <- as.POSIXct(dat$Date, format="%d/%m/%Y %H:%M")
+          dat$Date <- as.POSIXct(as.Date(dat$Date, format="%d/%m/%Y"), format="%d/%m/%Y %H:%M")
           
           if (any(is.numeric(meta$Volume_ml))) {
             dat$CountVol <- NA
