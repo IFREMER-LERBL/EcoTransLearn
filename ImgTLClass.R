@@ -270,14 +270,22 @@ ImgTLClass <- function() {
             dat$Longitude[which(dat$Sample == meta$Sample[j])] <- meta$Longitude[j]
             dat$Latitude[which(dat$Sample == meta$Sample[j])] <- meta$Latitude[j]
           }
-          
           if (any(is.numeric(meta$Volume_ml))) {
             dat$CountVol <- NA
             for (j in 1:NROW(meta))
               dat$CountVol[which(dat$Sample == meta$Sample[j])] <- 
                 round(dat$Count[which(dat$Sample == meta$Sample[j])]*1000/meta$Volume_ml[j])
           }
-          saveMap(dat, meta, grp, smpPath, saveFinal=as.logical(as.integer(sr)))
+          saveMap(dat, grp, smpPath, saveFinal=as.logical(as.integer(sr)))
+          
+        } else {
+          if (any(is.numeric(meta$Volume_ml))) {
+            dat$CountVol <- NA
+            for (j in 1:NROW(meta))
+              dat$CountVol[which(dat$Sample == meta$Sample[j])] <- 
+                round(dat$Count[which(dat$Sample == meta$Sample[j])]*1000/meta$Volume_ml[j])
+          }
+          saveCounts(dat, grp, smpPath, saveFinal=as.logical(as.integer(saveOpt)))
         }
       }
     }
