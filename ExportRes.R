@@ -99,12 +99,12 @@ saveFinalPlot <- function(dat, smpPath, saveFinal=TRUE) {
 }
 
 # Save map
-saveMap <- function(dat, meta, grp, smpPath, saveFinal=TRUE) {
+saveMap <- function(dat, grp, smpPath, saveFinal=TRUE) {
   coast <- read.shapefile("HF_maps/ne_10m_coastline/ne_10m_coastline")
   land <-read.shapefile("HF_maps/ne_10m_land/ne_10m_land")
   border <- read.shapefile("HF_maps/Borders/ne_10m_admin_0_boundary_lines_land")
-  xlim=c(min(meta$Longitude)-1,max(meta$Longitude)+1)
-  ylim=c(min(meta$Latitude)-1,max(meta$Latitude)+1)
+  xlim=c(min(dat$Longitude)-1,max(dat$Longitude)+1)
+  ylim=c(min(dat$Latitude)-1,max(dat$Latitude)+1)
   
   for (i in grp) {
     cat("\nProjecting", i, "abundances on map...")
@@ -118,7 +118,7 @@ saveMap <- function(dat, meta, grp, smpPath, saveFinal=TRUE) {
     draw.shape(coast, type = "line",col = "black" )
     draw.shape(land, type = "poly", col = "grey60")
     draw.shape(border, type = "line", col = "black")
-    points(x = meta$Longitude, y = meta$Latitude, col = alpha("orange", 0.4), 
+    points(x = dat$Longitude, y = dat$Latitude, col = alpha("orange", 0.4), 
            pch = 19, cex = dat$CountVol[which(dat$Group==i)]/1000)
     axis(side=1, cex.axis = 1)
     axis(side=2, cex.axis = 1)
@@ -135,12 +135,34 @@ saveMap <- function(dat, meta, grp, smpPath, saveFinal=TRUE) {
       draw.shape(coast, type = "line",col = "black" )
       draw.shape(land, type = "poly", col = "grey60")
       draw.shape(border, type = "line", col = "black")
-      points(x = meta$Longitude, y = meta$Latitude, col = alpha("orange", 0.4), 
+      points(x = dat$Longitude, y = dat$Latitude, col = alpha("orange", 0.4), 
              pch = 19, cex = dat$CountVol[which(dat$Group==i)]/1000)
       axis(side=1, cex.axis = 1)
       axis(side=2, cex.axis = 1)
       mtext(i, side = 3, font = 2, cex = 0.8, adj = 0, line = 0.15, col = "black")
       northarrow(loc = c(par("xaxp")[2]-2, par("yaxp")[1])+0.25, size = 0.34, cex = 0.9)
+      dev.off()
+    }
+    cat("\nDone!")
+  }
+}
+
+# Save counts for selected groups
+saveCounts <- function(dat, grp, smpPath, saveFinal=TRUE) {
+  for (i in grp) {
+    cat("\nPlotting", i, "counts...")
+    
+    X11()
+    datTemp <- dat[which(dat$Group==i), ]
+    datTemp <- datTemp[order(datTemp$Date), ]
+    plot(datTemp$Date, datTemp$CountVol, type="l", col="blue",
+         xlab="", ylab="Counts", main=i, lwd=2)
+    
+    if (isTRUE(saveFinal)) {
+      png(file.path(smpPath, paste(basename(smpPath), "_", i, ".png", sep="")), 
+          width=1280, height=720)
+      plot(datTemp$Date, datTemp$CountVol, type="l", col="blue",
+           xlab="", ylab="Counts", main=i, lwd=2)
       dev.off()
     }
     cat("\nDone!")
