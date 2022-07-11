@@ -33,4 +33,9 @@ EcoTransLearn is an R-package which can be installed directly from the R console
 
 ## Funding
 
-This work was supported by the CPER MARCO, JERICO-S3 and EuroHAB projects, and the Artois-Picardie Water Agency.
+This work has been financially supported by the European Union (ERDF), the French State, the French Region Hauts-de-France and Ifremer, in the framework of the project CPER MARCO 2015-2021.
+
+The JERICO-S3 project is funded by the European Commission's H2020 Frame-work Programme under grant agreement No. 871153. Project coordinator: Ifremer, France.
+
+This work has been carried out through the project S3-EUROHAB (Sentinel-3 products for detecting EUtROphicationanf Harmful Algal Bloom events) funded by the European Regional Develoment Fund through the INTERREG France-Channel-England.
+
