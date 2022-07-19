@@ -28,6 +28,7 @@ EcoTransLearn is an R-package which can be downloaded (see Releases/v1.0 on this
 To launch the Graphical User Interface of EcoTransLearn, run this command lines in the R console:
 
 *library(EcoTransLearn)*
+
 *EcoTransLearn()*
 
 ![image](https://user-images.githubusercontent.com/104447521/178229132-b9f46d4e-7164-49d4-b376-870c5dc7077a.png)
