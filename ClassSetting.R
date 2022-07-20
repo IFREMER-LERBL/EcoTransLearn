@@ -1,4 +1,4 @@
-settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, eachRes="1") {
+settingsWindow <- function(dev="FlowCam_GRAYSCALE", zipFile="", prob=0.5, eachRes="1") {
   
   # Create new window for settings
   tt <- tktoplevel()
@@ -8,11 +8,11 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
   # Acquisition devices
   fontTitle <- tkfont.create(family="Arial", size=12, weight="bold")
   fontText <- tkfont.create(family="Helvetica", size=8, weight="bold")
-  tkgrid(tk2label(tt, text="ACQUISITION", font=fontTitle), row=1, sticky="w")
+  tkgrid(tk2label(tt, text="ACQUISITION DEVICE", font=fontTitle), row=1, sticky="w")
   
   devValue <- tclVar(dev)
   dev.title <- c("Cyto-Sense-Sub", "FlowCam_COLOR", "FlowCam_GRAYSCALE", 
-                 "Imaging_FlowCytoBot", "Photomicrograph", "ZooScan", "Others")
+                 "Imaging_FlowCytoBot", "Photo(micro)graph", "ZooScan")
   callback <- function() print(tclvalue(devValue))
   sapply(dev.title, function(i) {
     radio_button <- ttkradiobutton(tt, variable = devValue, 
@@ -21,7 +21,7 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
   })
   
   # Classification options
-  tkgrid(tk2label(tt, text="CLASSIFICATION", font=fontTitle), row=9, sticky="w")
+  tkgrid(tk2label(tt, text="TRANSFER LEARNING", font=fontTitle), row=9, sticky="w")
   
   tt$env$butDataSelect <- tk2button(tt, text="(Re-)Build a model", image = "update", 
                                     compound = "left", width=30, command=function() {
@@ -109,23 +109,56 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
         
         pc <<- as.character(tclvalue(pcValue))
         if (pc=="Build on this computer") {
-          ans <- tkmessageBox(message = "This requires that Python (version 3.7) and TensorFlow (open-source library) be installed on this computer...!\n\nContinue?",
-                       type = "yesno")
+          ans <- tkmessageBox(message="This requires that Python (version 3.7) and TensorFlow (open-source library) be installed on this computer...!\n\nContinue?",
+                       type="yesno")
           if (tclvalue(ans)=="yes") {
-            tkmessageBox(message = "YOU'RE CRAZY!!!\nNot on mine!\n(I care about my computer...)",
-                       icon = "warning")
-            #reticulate::source_python("transferLearning.py")
-            #modTL <- transferLearning(modelName, trainPath, testPath, batch_size=as.integer(20))
+            ans <- tkmessageBox(message="This operation can take several hours...!\n\nContinue?",
+                                type="yesno", icon="warning")
+            if (tclvalue(ans)=="yes") {
+              # Edit and create a specific python script
+              tx  <- readLines(system.file("python_scripts", "templateScriptTL.py", package="EcoTransLearn"))
+              
+              tx[which(tx=="device")] <- paste(tx[which(tx=="device")], " = '", 
+                                               as.character(tclvalue(devValue)),"'", sep="")
+              tx[which(tx=="modelName")] <- paste(tx[which(tx=="modelName")], " = '", 
+                                                  selected_mod,"'", sep="")
+              tx[which(tx=="weightPath")] <- paste(tx[which(tx=="weightPath")], " = '", 
+                                                   list.files(system.file("weights", package="EcoTransLearn"), 
+                                                              pattern=selected_mod, full.names = TRUE),"'", sep="")
+              tx[which(tx=="trainPath")] <- paste(tx[which(tx=="trainPath")], " = '", 
+                                                  file.path(trainPath, "train"),"'", sep="")
+              tx[which(tx=="testPath")] <- paste(tx[which(tx=="testPath")], " = '", 
+                                                 file.path(trainPath, "test"),"'", sep="")
+              tx[which(tx=="BATCH_SIZE")] <- paste(tx[which(tx=="BATCH_SIZE")], " = ", 
+                                                   batch_size, sep="")
+              tx[which(tx=="EPOCH")] <- paste(tx[which(tx=="EPOCH")], " = ", 
+                                              epoch, sep="")
+              tx[which(tx=="img_width")] <- paste(tx[which(tx=="img_width")], " = ", 
+                                                  img_width, sep="")
+              tx[which(tx=="img_height")] <- paste(tx[which(tx=="img_height")], " = ", 
+                                                   img_height, sep="")
+              tx[which(tx=="data_aug")] <- paste(tx[which(tx=="data_aug")], " = ", 
+                                                 as.integer(dataug), sep="")
+              modSavedPath <- file.path(trainPath, "saved_models")
+              if (!dir.exists(modSavedPath))
+                dir.create(modSavedPath, recursive = TRUE)
+              tx[which(tx=="save_dir")] <- paste(tx[which(tx=="save_dir")], " = '", 
+                                                 file.path(trainPath, "saved_models"),"'", sep="")
+              writeLines(tx, con=file.path(trainPath, paste(selected_mod, "_script.py", sep="")))
+              reticulate::source_python(file.path(trainPath, paste(selected_mod, "_script.py", sep="")))
+            }
           }
         } else {
           # Edit and create a specific python script
-          tx  <- readLines("templateScriptTL.py")
+          tx  <- readLines(system.file("python_scripts", "templateScriptTL.py", package="EcoTransLearn"))
+         
+          tx[which(tx=="device")] <- paste(tx[which(tx=="device")], " = '", 
+                                           as.character(tclvalue(devValue)),"'", sep="")
           tx[which(tx=="modelName")] <- paste(tx[which(tx=="modelName")], " = '", 
                                               selected_mod,"'", sep="")
           tx[which(tx=="weightPath")] <- paste(tx[which(tx=="weightPath")], " = '", 
-                                               list.files(file.path(getwd(), "weights"), 
-                                                          pattern=selected_mod, 
-                                                          full.names = TRUE),"'", sep="")
+                                               list.files(system.file("weights", package="EcoTransLearn"), 
+                                                          pattern=selected_mod, full.names = TRUE),"'", sep="")
           tx[which(tx=="trainPath")] <- paste(tx[which(tx=="trainPath")], " = '", 
                                               file.path(trainPath, "train"),"'", sep="")
           tx[which(tx=="testPath")] <- paste(tx[which(tx=="testPath")], " = '", 
@@ -146,8 +179,9 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
           tx[which(tx=="save_dir")] <- paste(tx[which(tx=="save_dir")], " = '", 
                                              file.path(trainPath, "saved_models"),"'", sep="")
           writeLines(tx, con=file.path(trainPath, paste(selected_mod, "_script.py", sep="")))
-          tkmessageBox(message = paste("Python script created and saved in:\n",
-                                       file.path(trainPath, paste(selected_mod, "_script.py", sep="")), sep=""))
+          #writeLines(tx, con=file.path(trainPath, paste(selected_mod, "_script.ipynb", sep="")))
+          tkmessageBox(message = paste("Python scripts created and saved in:\n",
+                                       trainPath, sep=""))
         }
         tkdestroy(ttt)
       }
@@ -177,11 +211,33 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
       tkgrid(tklabel(tt, text=paste("Test accuracy:", train_res$val_accuracy[nrow(train_res)], sep=" "), 
                      font=fontText, foreground = "darkgreen"), sticky="w", row=16, column=0)
       
+      trueLab <- read.csv(unz(zipFile, zipFiles$Name[grep("test", zipFiles$Name)]), 
+                          header=TRUE, sep=",")
+      trueLab <- trueLab[['Label']]
+      predLab <- read.csv(unz(zipFile, zipFiles$Name[grep("predictions", zipFiles$Name)]), 
+                          header=FALSE, sep=";")
+      pred <- apply(X=predLab, MARGIN=1, FUN=max)
+      predInd <- apply(X=predLab, MARGIN=1, FUN=which.max)-1
+      
+      classNames <- read.csv(unz(zipFile, zipFiles$Name[grep("classnames", zipFiles$Name)]), 
+                             header=FALSE, sep=",")$V1
+      for (cl in 1:length(classNames))
+        predInd[which(predInd==cl-1)] <- classNames[cl]
+      conf <- confusion(as.factor(predInd), as.factor(trueLab))
+      
       X11()
-      par(mfrow = c(2, 1),     # 2x2 layout
-          oma = c(2, 2, 0, 0), # two rows of text at the outer left and bottom margin
-          mar = c(1, 1, 0, 1), # space for one row of text at ticks and to separate plots
-          mgp = c(2, 1, 0),    # axis label at 2 rows distance, tick labels at 1 row
+      hist(pred, breaks=8, xlab="Class probability", 
+           ylab="Number of images", main="", col="darkgreen",
+           labels=paste0(round(hist(pred, breaks=8, plot=FALSE)$counts/length(pred)*100, 1), "%"))
+      
+      X11()
+      confusionImage(conf, mar=c(3.1,15.1,6.1,3.1))
+      
+      X11()
+      par(mfrow = c(2,1),     # 2x2 layout
+          oma = c(2,2,0,0),   # two rows of text at the outer left and bottom margin
+          mar = c(1,1,0,1),   # space for one row of text at ticks and to separate plots
+          mgp = c(2,1,0),     # axis label at 2 rows distance, tick labels at 1 row
           xpd = NA)
       plot(train_res$epoch, train_res$accuracy, type="l", col="darkgreen", lwd=2,
            xlab="", ylab="Accuracy", xaxt="n")
@@ -198,7 +254,7 @@ settingsWindow <- function(dev="FlowCam (GRAYSCALE)", zipFile="", prob=0.5, each
   tkgrid(tt$env$butSelect, padx=20, pady=5, row=11, columnspan=2)
   
   ## Outputs options
-  tkgrid(tk2label(tt, text="OUTPUTS", font=fontTitle), row=17, sticky="w")
+  tkgrid(tk2label(tt, text="CSV AND GRAPHICAL OUTPUTS", font=fontTitle), row=17, sticky="w")
   
   tt$env$eachRes <- tk2checkbutton(tt, text="Export results for each sample")
   eachResValue <- tclVar(eachRes)
