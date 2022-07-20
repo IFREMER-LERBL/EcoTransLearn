@@ -19,7 +19,7 @@ The Python libraries needed by EcoTransLearn are: matplotlib, numpy, pandas, skl
 
 **EcoTransLearn installation**
 
-EcoTransLearn is an R-package which can be downloaded (see Releases/v1.0 on this repository) and installed directly from the R console with the following command line: 
+EcoTransLearn is an R-package which can be downloaded (see: Releases/v1.0 in this repository) and installed directly from the R console with the following command line: 
 
 *install.packages("/.../EcoTransLearn_1.0.tar.gz", repos = NULL, type = "source")*
 
