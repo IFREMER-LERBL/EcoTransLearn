@@ -7,13 +7,17 @@ setwd("C:/Users/Administrateur/Desktop/ImgTLClass/")
 
 ## Required packages
 required.packages <- c("colorRamps","ggplot2","grid","jpeg","mapplots", "maps",
-                       "randomForest","reticulate","SDMTools","shapefiles",
+                       "randomForest","reticulate",#"SDMTools",
+                       "shapefiles",
                        "stringr","svDialogs","svMisc","tcltk2","tiff","zooimage")
 new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(required.packages, require, character.only = TRUE))
 
 ## Import images used in GUI
+
+tcl("image", "create", "photo", "settingsFile", file=system.file("images", "settings.gif", package="PelHabMSFD"))
+
 barplt <- tcl("image", "create", "photo", "barplt", file = "images/barplot.gif")
 csv <- tcl("image", "create", "photo", "csv", file = "images/csv.gif")
 fish <- tcl("image", "create", "photo", "fish", file = "images/fish.gif")
@@ -35,4 +39,5 @@ source("MoreTools.R")
 source("NorthArrow.R")
 
 ## Function to launch GUI
-cat("Execute 'ImgTLClass()' function to launch GUI...\n")
+cat("Execute 'EcoTransLearn()' function to launch GUI...\n")
+

@@ -1,4 +1,17 @@
-ImgTLClass <- function() {
+EcoTransLearn <- function() {
+  
+  graphics.off()
+  tcl("image", "create", "photo", "barplt", file=system.file("images", "barplot.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "csv", file=system.file("images", "csv.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "fish", file=system.file("images", "fish.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "folder", file=system.file("images", "folder.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "ifremerLogo", file=system.file("images", "ifremer_logo_resized_small.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "map", file=system.file("images", "map.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "phyto", file=system.file("images", "phyto_flowcam.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "plus", file=system.file("images", "plus.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "python", file=system.file("images", "python.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "settingsFile", file=system.file("images", "settings.gif", package="EcoTransLearn"))
+  tcl("image", "create", "photo", "update", file=system.file("images", "update.gif", package="EcoTransLearn"))
   
   fontTitle <- tkfont.create(family="Helvetica",size=18,weight="bold")
   fontText <- tkfont.create(family="Helvetica", size=8, weight="bold")
@@ -6,7 +19,7 @@ ImgTLClass <- function() {
   tk2theme("alt")
   mainWindow <- tktoplevel()
   tkwm.resizable(mainWindow, FALSE, FALSE)
-  tktitle(mainWindow) <- "ImgTLClass (version V.0-1)"
+  tktitle(mainWindow) <- "EcoTransLearn (version 0.0-1)"
   tkgrid(tklabel(mainWindow, text=""), row = 0, column=1, columnspan = 4)
   
   # Default options
@@ -149,7 +162,7 @@ ImgTLClass <- function() {
           modelName <- sub("\\_.*", "", zipFiles$Name[1])
           imgPath <- dirname(vigsPath)
           #reticulate::use_condaenv()
-          reticulate::source_python("imgClassification.py")
+          reticulate::source_python(system.file("python_scripts", "imgClassification.py", package="EcoTransLearn"))
           resTL <- imgClassification(modelName, imgPath, modelPath, batch_size=as.integer(20),
                                      img_width=as.integer(128), img_height=as.integer(128))
           predictions <- resTL[[1]]
@@ -204,15 +217,16 @@ ImgTLClass <- function() {
     metaFile <<- tclvalue(tkgetOpenFile(filetypes = "{ {csv Files} {.csv} } { {CSV Files} {.csv} }", 
                                          title = "Select metadata file..."))
     if (!nchar(metaFile)) {
-      tkmessageBox(message = "No file selected for metadata...")
+      tkmessageBox(message = "No file selected for metadata...\nPlease generate a template with the dedicated tool!")
     } else {
       if (!file.exists(file.path(smpPath, paste(basename(smpPath), "_RES.csv", sep="")))) {
         tkmessageBox(message = "No results found... Please classify data first!")
       } else {
         meta <- read.table(metaFile, sep = ";", dec = ",", header = TRUE)
         dat <- read.table(file.path(smpPath, paste(basename(smpPath), "_RES.csv", sep="")), 
-                          sep = ";", dec = ",", header = TRUE)
-        
+                          sep = ";", dec = ".", header = TRUE)
+        #meta$Date <- sub("^.*([0-9]{4}-[0-1][0-9]-[0-3][0-9]).*$", "\\1", meta$Sample)
+
         # Select groups of interest
         tt <- tktoplevel()
         tktitle(tt) <- "Select groups"
@@ -249,7 +263,9 @@ ImgTLClass <- function() {
           dat$Date <- NA
           for (j in 1:NROW(meta))
             dat$Date[which(dat$Sample == meta$Sample[j])] <- meta$Date[j]
-          dat$Date <- as.POSIXct(as.Date(dat$Date, format="%d/%m/%Y"), format="%d/%m/%Y %H:%M")
+          #dat$Date <- as.POSIXct(as.Date(dat$Date, format="%d/%m/%Y"), format="%d/%m/%Y %H:%M")
+          #dat$Date <- as.POSIXct(as.Date(dat$Date, format="%Y-%m-%d"), format="%Y-%m-%d %H:%M:%S")
+          dat$Date <- as.POSIXct(dat$Date)
           
           if (any(is.numeric(meta$Volume_ml))) {
             dat$CountVol <- NA
@@ -258,7 +274,20 @@ ImgTLClass <- function() {
                 round(dat$Count[which(dat$Sample == meta$Sample[j])]*1000/meta$Volume_ml[j])
           }
           cat("\nPlotting Counts and Relative Counts...")
-          saveFinalPlot(dat, smpPath, saveFinal=as.logical(as.integer(sr)))
+          datGrp <- dat[which(dat$Group %in% grp), ]
+          saveFinalPlot(datGrp, smpPath, saveFinal=as.logical(as.integer(saveOpt)))
+          # write.table(dat, file.path(smpPath, paste(basename(smpPath), "_RES.csv", sep="")), 
+          #             row.names=FALSE, col.names=TRUE, sep=";")
+          
+          datForm <- matrix(data=0, nrow=length(unique(dat$Date)), 
+                            ncol=length(unique(dat$Group)))
+          for (f in 1:length(unique(dat$Date)))
+            datForm[f, ] <- dat$CountVol[which(dat$Date==unique(dat$Date)[f])]
+          rownames(datForm) <- as.character(unique(dat$Date))
+          colnames(datForm) <- unique(dat$Group)
+          write.table(datForm, file.path(smpPath, paste(basename(smpPath), "_RES_FORMAT.csv", sep="")), 
+                      row.names=TRUE, col.names=NA, sep=";")
+          
           cat("\nDone!\n")
         }
 
@@ -276,7 +305,7 @@ ImgTLClass <- function() {
               dat$CountVol[which(dat$Sample == meta$Sample[j])] <- 
                 round(dat$Count[which(dat$Sample == meta$Sample[j])]*1000/meta$Volume_ml[j])
           }
-          saveMap(dat, grp, smpPath, saveFinal=as.logical(as.integer(sr)))
+          saveMap(dat, grp, smpPath, saveFinal=as.logical(as.integer(saveOpt)))
           
         } else {
           if (any(is.numeric(meta$Volume_ml))) {

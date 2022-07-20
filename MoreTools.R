@@ -11,7 +11,7 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
   tkgrid(tk2label(tt, text="What do you want to do?", font=fontTitle), row=1, sticky="w")
   
   optValue <- tclVar(opt)
-  opt.title <- c("Process FlowCam data (collages)","Process CytoSense/Sub data", 
+  opt.title <- c("Process FlowCam data (collages)",#"Process CytoSense/Sub data", 
                  "Generate train and test .CSV files","Generate metadata file",
                  "Install Python and libraries","Close all figures","Read tutorial", "About...")
   callback <- function() print(tclvalue(optValue))
@@ -28,9 +28,9 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
       tkmessageBox(message = "PUT R SCRIPT HERE...")
     }
     
-    if (opt=="Process CytoSense/Sub data") {
-      tkmessageBox(message = "TO DO IF NECESSARY...")
-    }
+    # if (opt=="Process CytoSense/Sub data") {
+    #   tkmessageBox(message = "TO DO IF NECESSARY...")
+    # }
     
     if (opt=="Generate train and test .CSV files") {
       # Create CSV files for training and test datasets
@@ -63,11 +63,12 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
           for (i in 1:length(imgf)) {
             datTempImg <- cbind(rep(basename(imgf[i]), length(list.files(imgf[i]))), list.files(imgf[i]))
             dattrte <- rbind(dattrte, datTempImg)
+            file.copy(from=list.files(imgf[i], full.names=TRUE), to=trtePath)
           }
           dattrte <- as.data.frame(dattrte)
           names(dattrte) <- c("Label", "Image")
           write.table(dattrte, paste(trtePath, ".csv", sep=""), row.names = F, sep=",")
-                             
+          
           tkdestroy(ttt)
         }
       })
@@ -109,13 +110,19 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
             # Collect metadata
             Sample <- c(Sample, basename(i))
             smpName <- list.files(i, pattern = "_run_summary.txt", full.names = TRUE)
-            restxt <- readLines(con <- file(smpName, encoding = "UTF-8"))
-            Date <- c(Date, as.character(str_extract(restxt[grep("Start:", restxt)], "\\d+-\\d+-\\d+ \\d+:\\d+:\\d+")))
-            Volume <- c(Volume, as.character(sub(".", ",", str_extract(restxt[grep("Volume Imaged:", restxt)], 
+            if (length(smpName) > 0) {
+              restxt <- readLines(con <- file(smpName, encoding = "UTF-8"))
+              Date <- c(Date, as.character(str_extract(restxt[grep("Start:", restxt)], "\\d+-\\d+-\\d+ \\d+:\\d+:\\d+")))
+              Volume <- c(Volume, as.character(sub(".", ",", str_extract(restxt[grep("Volume Imaged:", restxt)], 
                                                                      "\\d+\\.*\\d*"), fixed = TRUE)))
+              close(con)
+            }
+            else {
+              Date <- c(Date, NA)
+              Volume <- c(Volume, NA)
+            }
             #meta <- rbind(meta, c(smp, volume))
             meta <- cbind(Sample, Date, Volume)
-            close(con)
           }
           meta <- as.data.frame(meta)
           datmeta <- data.frame(Sample=Sample,
@@ -126,7 +133,7 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
                                 Depth_m=1)
           
           write.table(datmeta, file.path(metaPath, paste(basename(metaPath), "_metadata.csv", sep="")), 
-                      row.names = FALSE, sep=";")
+                      row.names = FALSE, sep=";", append=TRUE)
           tkmessageBox(message = paste("Metadata file created and saved in:\n",
                                        file.path(metaPath, paste(basename(metaPath), "_metadata.csv", sep="")), sep=""))
           tkdestroy(ttt)
@@ -139,7 +146,7 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
     if (opt=="Install Python and libraries") {
       msg <- tkmessageBox(message = "1. Install 'Anaconda' environment: https://www.anaconda.com/products/individual
                   \n2. Install Python (version 3.7 or more)
-                  \n3. Install 'tensorflow', 'sklearn', 'numpy' and 'pandas' libraries")
+                  \n3. Install 'matplotlib', 'numpy', 'pandas', 'sklearn' and 'tensorflow' libraries")
     }
     
     if (opt=="Close all figures") {
@@ -147,21 +154,31 @@ addToolsWindow <- function(opt="Process FlowCam data (collages)") {
     }
     
     if (opt=="Read tutorial") {
-      cat("Open 'ImgTLClass' package - Tutorial (PDF file)...")
-      system('open "./tutorial/ImgTLClass_package_tutorial.pdf"')
+      cat("Open 'EcoTransLearn' package - Tutorial (PDF file)...")
+      manual <- system.file("tutorial", "EcoTransLearn_package_tutorial.pdf", package="EcoTransLearn")
+      pdfviewer <- getOption("pdfviewer")
+      if (!is.null(pdfviewer)) {
+        if (.Platform$OS.type == "windows") {
+          shell.exec(manual)
+        } else {
+          system(paste(shQuote(getOption("pdfviewer")), 
+                       shQuote(manual)), wait=FALSE)
+        }
+      } else browseURL(manual)
       cat("Done!")
     }
     
     if (opt=="About...") {
-      msg <- tkmessageBox(message = "ImgTLClass: version 1.0-0
-                  \nLicense GNU: ...
+      msg <- tkmessageBox(message = "EcoTransLearn: version 1.0-0
                   \nIFREMER: French Research Institute for Exploitation of the Sea
-                  \n\nOnce upon a time...")
+                  \nThis work has been financially supported by the European Union (ERDF), the French State, the French Region Hauts-de-France and Ifremer, in the framework of the project CPER MARCO 2015-2021.
+                  \nThe JERICO-S3 project is funded by the European Commission's H2020 Framework Programme under grant agreement No. 871153.
+                  \nThis work has been carried out through the project S3-EUROHAB (Sentinel-3 products for detecting EUtROphication and Harmful Algal Bloom events) funded by the European Regional Development Fund through the INTERREG France-Channel-England.")
     }
     
     tkdestroy(tt)
   }
   tt$env$butOK <- tk2button(tt, text="OK", width=10, command=onOK)
-  tkgrid(tt$env$butOK, padx=10, columnspan=2, pady=c(0, 5))
+  tkgrid(tt$env$butOK, padx=10, columnspan=2, pady=c(0,5))
   tkwait.window(tt)
 }

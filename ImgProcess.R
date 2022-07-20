@@ -5,7 +5,7 @@ ImgProcess <- function(datDir, tempDir, rgbCol=FALSE) {
     return(invisible(NULL))
   Lst <- dir(file.path(datDir), pattern = "\\.lst$", full.names = TRUE)[1]
   if (length(Lst)) {
-    dat <- readFlowCAMlst(Lst, skip = 2, read.ctx = TRUE)
+    dat <- readColFlowCAMlst(Lst, skip = 2, read.ctx = TRUE)
     if (!is.data.frame(dat) && NROW(dat) < 1) 
       stop("Problem while importing FlowCAM data, or empty series")
     sampledir <- dirname(Lst)
@@ -36,7 +36,7 @@ ImgProcess <- function(datDir, tempDir, rgbCol=FALSE) {
       }
     }
     colFiles <- tif[!isCal]
-    if (length(colFiles) == 0) 
+    if (length(colFiles) == 0)
       stop("No collages found")
     colFile <- ""
     dat1 <- dat

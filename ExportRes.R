@@ -2,6 +2,7 @@
 exportRes <- function(smp="", predictions, imgNames, prob=0.5, smpPath, colgPath, saveAll=TRUE) {
   predicted_proba <- apply(predictions, 1, max, na.rm=TRUE)
   predicted_idx <- which(predicted_proba >= prob)
+  low_predicted_idx <- which(predicted_proba < prob)
   percent_used <- length(predicted_idx)/nrow(predictions)*100
   predicted_classes <- predictions[predicted_idx, ]
   predicted_names <- colnames(predicted_classes)[apply(predicted_classes, 1, which.max)]
@@ -23,13 +24,13 @@ exportRes <- function(smp="", predictions, imgNames, prob=0.5, smpPath, colgPath
               sep=";", dec=".", row.names = FALSE, col.names = c("Filename","Class"))
     write.table(res_rel, file.path(smpPath, paste(basename(colgPath), ".csv", sep="")), 
               sep=";", dec=".", row.names = FALSE)
-    savePlot(dat=res_rel, smpPath, colgPath)
+    saveIndPlot(dat=res_rel, smpPath, colgPath)
   }
   return(res_rel)
 }
 
 # Save plots for individuals samples
-savePlot <- function(dat, smpPath, colgPath) {
+saveIndPlot <- function(dat, smpPath, colgPath) {
   png(file.path(smpPath, paste(basename(colgPath), "_RELATIVE.png", sep="")), width = 1280, height = 720)
   gg <- ggplot(dat, aes(x=Group, y=Relative)) +
     geom_col() + ylim(0,max(dat$Relative)+8) + geom_bar(stat="identity") +
@@ -100,9 +101,12 @@ saveFinalPlot <- function(dat, smpPath, saveFinal=TRUE) {
 
 # Save map
 saveMap <- function(dat, grp, smpPath, saveFinal=TRUE) {
-  coast <- read.shapefile("HF_maps/ne_10m_coastline/ne_10m_coastline")
-  land <-read.shapefile("HF_maps/ne_10m_land/ne_10m_land")
-  border <- read.shapefile("HF_maps/Borders/ne_10m_admin_0_boundary_lines_land")
+  coast <- read.shapefile(file.path(system.file("HF_maps/ne_10m_coastline", 
+                                                package="EcoTransLearn"), "ne_10m_coastline"))
+  land <-read.shapefile(file.path(system.file("HF_maps/ne_10m_land", 
+                                              package="EcoTransLearn"), "ne_10m_land"))
+  border <- read.shapefile(file.path(system.file("HF_maps/Borders", 
+                                                 package="EcoTransLearn"), "ne_10m_admin_0_boundary_lines_land"))
   xlim=c(min(dat$Longitude)-1,max(dat$Longitude)+1)
   ylim=c(min(dat$Latitude)-1,max(dat$Latitude)+1)
   
@@ -157,7 +161,7 @@ saveCounts <- function(dat, grp, smpPath, saveFinal=TRUE) {
     datTemp <- datTemp[order(datTemp$Date), ]
     plot(datTemp$Date, datTemp$CountVol, type="l", col="blue",
          xlab="", ylab="Counts", main=i, lwd=2)
-    
+
     if (isTRUE(saveFinal)) {
       png(file.path(smpPath, paste(basename(smpPath), "_", i, ".png", sep="")), 
           width=1280, height=720)
