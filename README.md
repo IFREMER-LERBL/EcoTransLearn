@@ -45,5 +45,5 @@ This work has been financially supported by the European Union (ERDF), the Frenc
 
 The JERICO-S3 project is funded by the European Commission's H2020 Frame-work Programme under grant agreement No. 871153. Project coordinator: Ifremer, France.
 
-This work has been carried out through the project S3-EUROHAB (Sentinel-3 products for detecting EUtROphicationanf Harmful Algal Bloom events) funded by the European Regional Develoment Fund through the INTERREG France-Channel-England.
+This work has been carried out through the project S3-EUROHAB (Sentinel-3 products for detecting EUtROphication and Harmful Algal Bloom events) funded by the European Regional Development Fund through the INTERREG France-Channel-England.
 
