@@ -28,7 +28,51 @@ function(opt="Process FlowCam data (collages)") {
     opt <<- as.character(tclvalue(optValue))
     
     if (opt=="Process FlowCam data (collages)") {
-      tkmessageBox(message="COMING SOON...")
+      # Transform FlowCam collages --> vignettes (one image file per particle)
+      ttt <- tktoplevel()
+      tktitle(ttt) <- "Process FlowCam data (collages)"
+      tkwm.resizable(ttt, FALSE, FALSE)
+      
+      dirButton <- tk2button(ttt, text="SELECT THE FLOWCAM SAMPLE FOLDER", 
+                             image="folder", compound="left", width=40, 
+                             command=function() {
+                               florepPath <<- tk_choose.dir(default=getwd())
+                               if (is.na(florepPath)) {
+                                 tkmessageBox(message="No directory selected!")
+                               } else {
+                                 tkgrid(tklabel(ttt, text=basename(florepPath), font=fontText, 
+                                                foreground="darkgreen"),
+                                        padx=c(50,50), row=2, column=0, columnspan=2)
+                               }
+                             })
+      tkgrid(tklabel(ttt, text=""), row=0)
+      tkgrid(tklabel(ttt, text=""), row=2)
+      tkgrid(dirButton, row=1, padx=c(50,50), column=0, columnspan=2)
+      
+      flo <- "Process FlowCam data (collages)"
+      floValue <- tclVar(flo)
+      flo.title <- c("FlowCam_COLOR", "FlowCam_GRAYSCALE")
+      sapply(flo.title, function(i) {
+        radio_button <- ttkradiobutton(ttt, variable=floValue, 
+                                       text=i, value=i)
+        tkgrid(radio_button, padx=c(50,50), pady=5, sticky="w")
+      })
+      
+      ValidButton <- tk2button(ttt, text="PROCESS", image="folder", 
+                               compound="left", width=30, 
+                               command=function() {
+                                 flo <<- as.character(tclvalue(floValue))
+                                 vigsPath <- file.path(florepPath, "processed_img")
+                                 if (!dir.exists(vigsPath))
+                                   dir.create(vigsPath, recursive=TRUE)
+                                 
+                                 ImgProcess(florepPath, vigsPath,
+                                            rgbCol=grepl("COLOR", flo))
+                                 cat("\nDone!")
+                               })
+      tkgrid(ValidButton, padx=c(50,50), pady=c(10, 15), 
+             column=0, columnspan=2)
+      tkwait.window(ttt)
     }
     
     # if (opt=="Process CytoSense/Sub data") {
