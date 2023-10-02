@@ -230,7 +230,7 @@ function(opt="Process FlowCam data (collages)") {
     }
     
     if (opt=="About...") {
-      msg <- tkmessageBox(message="EcoTransLearn: version 1.0-0
+      msg <- tkmessageBox(message="EcoTransLearn: version 1.0-3
                   \nIFREMER: French Research Institute for Exploitation of the Sea
                   \nThis work has been financially supported by the European Union (ERDF), the French State, the French Region Hauts-de-France and Ifremer, in the framework of the project CPER MARCO 2015-2021.
                   \nThe JERICO-S3 project is funded by the European Commission's H2020 Framework Programme under grant agreement No. 871153.
