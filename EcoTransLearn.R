@@ -42,7 +42,7 @@ function() {
   tk2theme("alt")
   mainWindow <- tktoplevel()
   tkwm.resizable(mainWindow, FALSE, FALSE)
-  tktitle(mainWindow) <- "EcoTransLearn (version 1.0-2)"
+  tktitle(mainWindow) <- "EcoTransLearn (version 1.0-3)"
   tkgrid(tklabel(mainWindow, text=""), row=0, column=1, columnspan=4)
   
   # Default options
