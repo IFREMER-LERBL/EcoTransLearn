@@ -7,7 +7,7 @@ EcoTransLearn is an R-package including a simple Graphical User Interface (GUI) 
 
 **R environment**
 
-The version 1.0-0 of the EcoTransLearn package needs a recent version of R (version 4.0.x or upper). It can be directly downloaded on the CRAN website.
+The version 1.0-3 of the EcoTransLearn package needs a recent version of R (version 4.0.x or upper). It can be directly downloaded on the CRAN website.
 
 The R-packages needed by EcoTransLearn are: colorRamps, ggplot2, grid, jpeg, mapplots, maps, randomForest, reticulate, SDMTools, shapefiles, stringr, svDialogs, svMisc, tcltk2, tiff and zooimage.
 
@@ -15,7 +15,7 @@ The R-packages needed by EcoTransLearn are: colorRamps, ggplot2, grid, jpeg, map
 
 The EcoTransLearn package needs the version 3.7 (or upper) of Python.
 
-The Python libraries needed by EcoTransLearn are: matplotlib, numpy, pandas, sklearn and tensorflow.
+The Python libraries needed by EcoTransLearn are: Image, pillow, matplotlib, numpy, pandas, sklearn and tensorflow.
 
 **EcoTransLearn installation**
 
